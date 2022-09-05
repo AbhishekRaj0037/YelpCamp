@@ -1,0 +1,52 @@
+const express = require('express');
+const path = require('path');
+const mongoose = require('mongoose');
+const cities = require('./cities');
+const { places, descriptors } = require('./seedHelpers');
+const Campground = require('../models/campground')
+
+mongoose.connect('mongodb://localhost:27017/yelp-camp', {
+    useNewUrlParser: true,
+    // useCreateIndex: true,
+    useUnifiedTopology: true
+});
+
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "connection error:"));
+db.once("open", () => {
+    console.log("Database connected");
+});
+
+const sample = array => array[Math.floor(Math.random() * array.length)];
+
+const seedDB = async () => {
+    await Campground.deleteMany({});
+    for (let i = 0; i < 50; i++) {
+        const random1000 = Math.floor(Math.random() * 1000);
+        const price = Math.floor(Math.random() * 20) + 10;
+        const camp = new Campground({
+            author: '631332cf183f29079561e70c',
+            location: `${cities[random1000].city}, ${cities[random1000].state}`,
+            title: `${sample(descriptors)} ${sample(places)}`,
+            description: '    Lorem ipsum dolor, sit amet consectetur adipisicing elit. Enim natus consectetur ducimus voluptates aut numquam fugit laboriosam quis illum similique? Laboriosam, aliquid maxime! Quam omnis, veniam sunt sed maiores ad.',
+            price,
+            images: [
+                {
+                    url: 'https://res.cloudinary.com/dagjmj2ww/image/upload/v1662304120/YELPCAMP/liaf4ij7scfoc5912vb1.jpg',
+                    filename: 'YELPCAMP/liaf4ij7scfoc5912vb1',
+
+                },
+                {
+                    url: 'https://res.cloudinary.com/dagjmj2ww/image/upload/v1662304122/YELPCAMP/x7srjffstctpcwkddwuq.jpg',
+                    filename: 'YELPCAMP/x7srjffstctpcwkddwuq',
+
+                }
+            ]
+        })
+        await camp.save();
+    }
+}
+
+seedDB().then(() => {
+    mongoose.connection.close();
+})
